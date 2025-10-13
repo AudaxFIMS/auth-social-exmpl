@@ -1,0 +1,43 @@
+server:
+  port: 8080
+
+spring:
+  config:
+    import:
+      - optional:vault://
+  cloud:
+    vault:
+      uri: http://localhost:8200
+      authentication: token
+      token: myroot
+      kv:
+        enabled: true
+        backend: secret
+        profile-separator: /
+        default-context: myapp
+        application-name: myapp
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+security:
+  jwt:
+    secret: very-very-secret-key-change-me-which-should-be-long-enough
+    access-token-expiration-sec: 600      # 10 minutes
+    refresh-token-expiration-sec: 1209600 # 14 days
+
+facebook:
+  debug-url: https://graph.facebook.com/debug_token
+  user-info-url: https://graph.facebook.com/me?fields=id,name,email&access_token=
+
+google:
+  api-url: https://oauth2.googleapis.com/tokeninfo?id_token=
+
+apple:
+  api-url: https://appleid.apple.com/auth/keys
