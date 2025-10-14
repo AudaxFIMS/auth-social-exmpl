@@ -5,13 +5,16 @@ import io.jsonwebtoken.Jws;
 import org.example.entity.User;
 import org.example.repositories.UserRepository;
 import org.example.security.JwtUtil;
+import org.example.security.service.SecurityUser;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
@@ -22,30 +25,36 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.util.List;
 
 @Configuration
+@EnableMethodSecurity
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
 	private final UserRepository userRepo;
+	private final SecurityUser securityUser;
 
     public SecurityConfig(
 			JwtUtil jwtUtil,
-			UserRepository userRepo
+			UserRepository userRepo,
+			SecurityUser securityUser
     ) {
         this.jwtUtil = jwtUtil;
 		this.userRepo = userRepo;
+		this.securityUser = securityUser;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-            .csrf(csrf -> csrf.disable())
+            .csrf(AbstractHttpConfigurer::disable)
             .authorizeHttpRequests(auth -> auth
                 .requestMatchers("/auth/**", "/h2-console/**").permitAll()
                 .anyRequest().authenticated()
             )
-            .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin())) // enable H2 console
+            .headers(
+					headers ->
+							headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::sameOrigin)
+            ) // enable H2 console
             .httpBasic(Customizer.withDefaults())
             .addFilterBefore(
 					jwtFilter(),
@@ -62,20 +71,19 @@ public class SecurityConfig {
                 String h = req.getHeader(HttpHeaders.AUTHORIZATION);
                 if (h != null && h.startsWith("Bearer ")) {
                     String token = h.substring(7);
-
                     try {
-	                    User user = userRepo.findByAccessToken(token).orElseThrow(() -> new RuntimeException("Invalid Access token"));
 	                    if (jwtUtil.isTokenExpired(token)) {
-		                    throw new RuntimeException("Access token expired");
+		                    throw new IllegalArgumentException("Access token expired");
 	                    }
+	                    User user = userRepo.findByAccessToken(token)
+			                    .orElseThrow(() -> new IllegalArgumentException("Invalid Access token"));
+
 	                    Jws<Claims> claims = jwtUtil.parseToken(token);
                         String subject = claims.getPayload().getSubject();
                         var auth = new UsernamePasswordAuthenticationToken(
 								subject,
 		                        null,
-		                        List.of(
-										new SimpleGrantedAuthority("ROLE_USER")
-		                        )
+		                        securityUser.getAuthorities(user)
                         );
                         auth.setDetails(user.getId());
                         SecurityContextHolder.getContext().setAuthentication(auth);

@@ -6,6 +6,10 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.constant.Socials;
+import org.example.entity.converter.RoleSetConverter;
+import org.example.security.enums.Roles;
+
+import java.util.Set;
 
 @Entity
 @Table(
@@ -16,7 +20,8 @@ import org.example.constant.Socials;
 )
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
 public class User {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     // provider: google, facebook, apple, local
@@ -41,4 +46,7 @@ public class User {
 
 	@Column(unique = true, length = 512)
 	private String accessToken;
+
+	@Convert(converter = RoleSetConverter.class)
+	private Set<Roles> roles = Set.of(Roles.USER);
 }
