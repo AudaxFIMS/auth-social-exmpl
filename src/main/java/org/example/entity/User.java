@@ -6,8 +6,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.example.constant.Socials;
-import org.example.entity.converter.RoleSetConverter;
-import org.example.security.enums.Roles;
+import org.example.entity.converter.RolesSetConverter;
+import org.example.security.roles.Roles;
 
 import java.util.Set;
 
@@ -47,6 +47,6 @@ public class User {
 	@Column(unique = true, length = 512)
 	private String accessToken;
 
-	@Convert(converter = RoleSetConverter.class)
+	@Convert(converter = RolesSetConverter.class)
 	private Set<Roles> roles = Set.of(Roles.USER);
 }

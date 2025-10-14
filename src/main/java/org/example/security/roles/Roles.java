@@ -1,4 +1,4 @@
-package org.example.security.enums;
+package org.example.security.roles;
 
 public enum Roles {
 	ADMIN,

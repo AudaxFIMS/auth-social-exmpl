@@ -5,7 +5,7 @@ import io.jsonwebtoken.Jws;
 import org.example.entity.User;
 import org.example.repositories.UserRepository;
 import org.example.security.JwtUtil;
-import org.example.security.service.SecurityUser;
+import org.example.service.UserAuthoritiesService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -31,16 +31,16 @@ import java.io.IOException;
 public class SecurityConfig {
     private final JwtUtil jwtUtil;
 	private final UserRepository userRepo;
-	private final SecurityUser securityUser;
+	private final UserAuthoritiesService securityUser;
 
     public SecurityConfig(
 			JwtUtil jwtUtil,
 			UserRepository userRepo,
-			SecurityUser securityUser
+			UserAuthoritiesService userAuthoritiesService
     ) {
         this.jwtUtil = jwtUtil;
 		this.userRepo = userRepo;
-		this.securityUser = securityUser;
+		this.securityUser = userAuthoritiesService;
     }
 
     @Bean
@@ -83,7 +83,7 @@ public class SecurityConfig {
                         var auth = new UsernamePasswordAuthenticationToken(
 								subject,
 		                        null,
-		                        securityUser.getAuthorities(user)
+		                        securityUser.getUserAuthorities(user)
                         );
                         auth.setDetails(user.getId());
                         SecurityContextHolder.getContext().setAuthentication(auth);

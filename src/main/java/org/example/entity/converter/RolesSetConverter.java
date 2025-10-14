@@ -2,14 +2,14 @@ package org.example.entity.converter;
 
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
-import org.example.security.enums.Roles;
+import org.example.security.roles.Roles;
 
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 @Converter
-public class RoleSetConverter implements AttributeConverter<Set<Roles>, String> {
+public class RolesSetConverter implements AttributeConverter<Set<Roles>, String> {
 	@Override
 	public String convertToDatabaseColumn(Set<Roles> attribute) {
 		if (attribute == null || attribute.isEmpty()) {
